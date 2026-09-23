@@ -1,0 +1,25 @@
+services:
+  agy-chat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: agy-chat:latest
+    container_name: agy-chat
+    restart: unless-stopped
+    ports:
+      # 仅绑定到本机 127.0.0.1，不对公网开放，便于本地调试及后续配置反向代理
+      - "127.0.0.1:8765:8765"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8765
+      - DATA_DIR=/app/data
+      - AUTH_PASSWORD=${AUTH_PASSWORD:-}
+      - ANTHROPIC_AUTH_TOKEN=${ANTHROPIC_AUTH_TOKEN:-}
+      - ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL:-}
+    volumes:
+      # 挂载宿主机 agy CLI 二进制
+      - ${HOME}/.local/bin/agy:/usr/local/bin/agy:ro
+      # 挂载宿主机 OAuth 登录态（读写挂载，以支持会话缓存与日志写入）
+      - ${HOME}/.gemini:/root/.gemini
+      # 持久化本地数据（Session 密钥与密码文件）
+      - ./data:/app/data

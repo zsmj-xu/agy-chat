@@ -1,228 +1,2498 @@
 <!doctype html>
-<html lang="zh">
+<html lang="zh" class="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>双子对话台</title>
+<title>ZCode ADE · Agentic Development Environment</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
 <style>
-  :root{
-    --ground:#f4f5f7; --surface:#ffffff; --surface-2:#eef0f3;
-    --ink:#1a1d23; --muted:#5c6572; --faint:#8b95a3; --border:#e0e3e8;
-    --claude:#bd5233; --claude-soft:#f7e7e0;
-    --agy:#3457c9; --agy-soft:#e3e9fb;
-    --ff-display:"Bricolage Grotesque","PingFang SC","Microsoft YaHei",sans-serif;
-    --ff-body:"IBM Plex Sans","PingFang SC","Microsoft YaHei",sans-serif;
-    --ff-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
-    --accent:var(--claude); --accent-soft:var(--claude-soft);
+  /* ---------------- ZCode Desktop ADE 官方配色规范 ---------------- */
+  :root {
+    --bg-window: #090c10;
+    --bg-titlebar: #0d1117;
+    --bg-sidebar: #0d1117;
+    --bg-main: #0b0e14;
+    --bg-card: #161b22;
+    --bg-card-hover: #1f242c;
+    --bg-card-active: #232832;
+    --bg-input: #12161f;
+    --bg-terminal: #07090e;
+    
+    --border-color: #21262d;
+    --border-subtle: #1c2128;
+    --border-focus: #58a6ff;
+    
+    --text-primary: #f0f6fc;
+    --text-secondary: #8b949e;
+    --text-muted: #586069;
+    --text-inverse: #ffffff;
+    
+    /* 品牌渐变色（ZCode 标志性紫蓝科技色） */
+    --accent-purple: #8b5cf6;
+    --accent-blue: #3b82f6;
+    --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+    --accent-glow: rgba(139, 92, 246, 0.25);
+    
+    --color-success: #238636;
+    --color-success-light: #3fb950;
+    --color-warning: #d29922;
+    --color-error: #f85149;
+    --color-info: #58a6ff;
+    
+    --traffic-close: #ff5f56;
+    --traffic-min: #ffbd2e;
+    --traffic-max: #27c93f;
+    
+    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    
+    --sidebar-width: 260px;
+    --workbench-width: 440px;
+    --titlebar-height: 40px;
   }
-  @media (prefers-color-scheme:dark){
-    :root{
-      color-scheme:dark;
-      --ground:#111318; --surface:#1a1d23; --surface-2:#23272f;
-      --ink:#e9ebef; --muted:#9aa4b2; --faint:#69737f; --border:#2c313a;
-      --claude:#e5825b; --claude-soft:#38231a;
-      --agy:#7690f6; --agy-soft:#1b243f;
-    }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background: var(--bg-window);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    -webkit-font-smoothing: antialiased;
   }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--ff-body);
-    font-size:15px;line-height:1.6;display:flex;flex-direction:column;
-    padding-top:env(safe-area-inset-top,0);}
-  [data-agent="agy"]{--accent:var(--agy);--accent-soft:var(--agy-soft);}
 
-  /* header */
-  header{flex:none;border-bottom:1px solid var(--border);background:var(--surface);
-    padding:12px clamp(14px,4vw,28px);display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
-  .brand{font-family:var(--ff-display);font-weight:700;font-size:1.15rem;letter-spacing:-.01em;}
-  .brand .c{color:var(--claude);} .brand .x{color:var(--faint);margin:0 2px;} .brand .a{color:var(--agy);}
-  .spacer{flex:1}
-  .switch{display:flex;gap:4px;background:var(--surface-2);border-radius:11px;padding:4px;}
-  .switch button{font-family:var(--ff-mono);font-size:.82rem;border:0;background:transparent;color:var(--muted);
-    padding:7px 15px;border-radius:8px;cursor:pointer;font-weight:500;transition:.15s;}
-  .switch button.on[data-a="claude"]{background:var(--claude);color:#fff;}
-  .switch button.on[data-a="agy"]{background:var(--agy);color:#fff;}
-  select{font-family:var(--ff-mono);font-size:.8rem;padding:7px 10px;border-radius:9px;
-    border:1px solid var(--border);background:var(--surface);color:var(--ink);cursor:pointer;}
-  select:disabled{opacity:.4;cursor:not-allowed;}
+  /* ---------------- Electron 桌面端窗口外壳 ---------------- */
+  .desktop-app-shell {
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
+    background: var(--bg-window);
+    overflow: hidden;
+    position: relative;
+  }
 
-  /* messages */
-  main{flex:1;overflow-y:auto;padding:clamp(14px,4vw,28px);}
-  .thread{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:16px;}
-  .empty{color:var(--faint);text-align:center;margin-top:14vh;font-size:.95rem;}
-  .empty .big{font-family:var(--ff-display);font-size:1.4rem;color:var(--muted);margin-bottom:6px;}
-  .msg{display:flex;gap:11px;max-width:100%;}
-  .msg .av{flex:none;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;
-    font-family:var(--ff-mono);font-size:.72rem;font-weight:600;margin-top:2px;}
-  .msg.bot .av{background:var(--accent-soft);color:var(--accent);}
-  .msg.me{flex-direction:row-reverse;}
-  .msg.me .av{background:var(--surface-2);color:var(--muted);}
-  .bubble{border-radius:13px;padding:11px 15px;white-space:pre-wrap;word-break:break-word;
-    font-size:.95rem;min-width:0;}
-  .msg.bot .bubble{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);}
-  .msg.me .bubble{background:var(--accent-soft);color:var(--ink);}
-  .msg.bot .bubble.wait::after{content:"▋";color:var(--accent);animation:blink 1s steps(2) infinite;}
-  @keyframes blink{50%{opacity:0}}
+  /* 1. macOS 风格桌面标题栏 */
+  .titlebar {
+    height: var(--titlebar-height);
+    background: var(--bg-titlebar);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    user-select: none;
+    z-index: 50;
+    flex: none;
+  }
 
-  /* composer */
-  footer{flex:none;border-top:1px solid var(--border);background:var(--surface);
-    padding:12px clamp(14px,4vw,28px);padding-bottom:calc(12px + env(safe-area-inset-bottom,0));}
-  .composer{max-width:820px;margin:0 auto;display:flex;gap:10px;align-items:flex-end;}
-  textarea{flex:1;resize:none;border:1px solid var(--border);border-radius:12px;padding:11px 14px;
-    font-family:var(--ff-body);font-size:.95rem;line-height:1.5;background:var(--ground);color:var(--ink);
-    max-height:180px;min-height:46px;}
-  textarea:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent;}
-  .send{flex:none;border:0;border-radius:12px;background:var(--accent);color:#fff;font-family:var(--ff-display);
-    font-weight:600;font-size:.95rem;padding:0 20px;height:46px;cursor:pointer;}
-  .send:disabled{opacity:.45;cursor:not-allowed;}
-  .hint{max-width:820px;margin:6px auto 0;color:var(--faint);font-size:.72rem;font-family:var(--ff-mono);}
+  .titlebar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .traffic-lights {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .traffic-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    cursor: pointer;
+    box-shadow: 0 0 1px rgba(0,0,0,0.5);
+  }
+  .traffic-dot.close { background: var(--traffic-close); }
+  .traffic-dot.min { background: var(--traffic-min); }
+  .traffic-dot.max { background: var(--traffic-max); }
+
+  .titlebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 6px;
+    border-left: 1px solid var(--border-color);
+  }
+  .brand-logo-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background: var(--accent-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px var(--accent-glow);
+  }
+  .brand-logo-icon svg {
+    width: 13px;
+    height: 13px;
+    fill: #ffffff;
+  }
+  .brand-name {
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: -0.2px;
+    color: #ffffff;
+  }
+  .brand-tag {
+    font-size: 10px;
+    font-weight: 600;
+    background: rgba(139, 92, 246, 0.2);
+    color: #c4b5fd;
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+  }
+
+  .workspace-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+  }
+  .workspace-pill .git-branch {
+    color: var(--accent-blue);
+    font-family: var(--font-mono);
+  }
+
+  .titlebar-center {
+    flex: 1;
+    max-width: 480px;
+    margin: 0 16px;
+  }
+  .global-search-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .global-search-bar:hover {
+    border-color: #38424e;
+    color: var(--text-secondary);
+  }
+  .kbd-shortcut {
+    font-size: 10.5px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+  }
+
+  .titlebar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+  }
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-success-light);
+    box-shadow: 0 0 6px rgba(63, 185, 80, 0.6);
+  }
+  .window-tool-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    padding: 4px 6px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+  }
+  .window-tool-btn:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+  }
+  .window-tool-btn.active {
+    background: rgba(139, 92, 246, 0.15);
+    color: #c4b5fd;
+    border-color: rgba(139, 92, 246, 0.4);
+  }
+
+  /* ---------------- 主三栏工作台架构 ---------------- */
+  .workspace-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* 2. 左侧栏 (Tasks & Sessions) */
+  .sidebar-pane {
+    width: var(--sidebar-width);
+    flex: none;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1), margin-left 0.2s ease;
+    z-index: 30;
+  }
+  .sidebar-pane.collapsed {
+    margin-left: calc(-1 * var(--sidebar-width));
+  }
+
+  .sidebar-header {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .btn-new-task {
+    width: 100%;
+    background: var(--accent-gradient);
+    color: #ffffff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 12.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 3px 10px var(--accent-glow);
+    transition: transform 0.1s ease, filter 0.15s ease;
+  }
+  .btn-new-task:hover {
+    filter: brightness(1.1);
+  }
+  .btn-new-task:active {
+    transform: scale(0.98);
+  }
+
+  .sidebar-section-title {
+    padding: 10px 14px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .task-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .task-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+  }
+  .task-item:hover {
+    background: var(--bg-card);
+  }
+  .task-item.active {
+    background: var(--bg-card-hover);
+    border-color: rgba(139, 92, 246, 0.4);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .task-item-main {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    overflow: hidden;
+    width: 100%;
+  }
+  .task-title-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .task-status-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .task-status-indicator.running {
+    background: #3b82f6;
+    box-shadow: 0 0 6px #3b82f6;
+    animation: pulse-dot 1.5s infinite;
+  }
+  .task-status-indicator.done {
+    background: var(--color-success-light);
+  }
+  .task-status-indicator.idle {
+    background: var(--text-muted);
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+  }
+
+  .task-item-title {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .task-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .task-tag {
+    font-size: 9.5px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+    padding: 0 4px;
+    font-family: var(--font-mono);
+  }
+  .task-delete-btn {
+    opacity: 0;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition: opacity 0.15s ease;
+  }
+  .task-item:hover .task-delete-btn {
+    opacity: 1;
+  }
+  .task-delete-btn:hover {
+    color: var(--color-error);
+    background: rgba(248, 81, 73, 0.1);
+  }
+
+  /* 模式选择区块 (Autonomous / Supervised) */
+  .mode-selector-card {
+    margin: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .mode-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .mode-pills-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+  .mode-pill-btn {
+    background: var(--bg-input);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    padding: 5px 6px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s ease;
+  }
+  .mode-pill-btn:hover {
+    border-color: var(--border-color);
+    color: var(--text-primary);
+  }
+  .mode-pill-btn.active {
+    background: rgba(139, 92, 246, 0.18);
+    border-color: rgba(139, 92, 246, 0.5);
+    color: #e9d5ff;
+    font-weight: 600;
+  }
+
+  /* 侧边栏底部 Profile */
+  .sidebar-footer {
+    padding: 10px 12px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-sidebar);
+  }
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .user-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #238636;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  }
+  .user-info {
+    display: flex;
+    flex-direction: column;
+  }
+  .user-name {
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .user-status {
+    font-size: 10.5px;
+    color: var(--text-muted);
+  }
+
+  /* 3. 中间核心：Agent 任务对话流 (Center Stage) */
+  .main-stage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-main);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* 任务顶栏控制区 */
+  .stage-header {
+    height: 44px;
+    background: var(--bg-window);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    flex: none;
+    z-index: 20;
+  }
+  .stage-breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+  }
+  .current-task-name {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .goal-pill {
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    color: #93c5fd;
+    font-size: 10.5px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* 模型切换器下拉 */
+  .stage-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .model-select-capsule {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+    transition: all 0.15s ease;
+  }
+  .model-select-capsule:hover {
+    border-color: #38424e;
+    background: var(--bg-card-hover);
+  }
+  .model-logo-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .model-logo-dot.claude { background: #f0883e; box-shadow: 0 0 6px rgba(240, 136, 62, 0.6); }
+  .model-logo-dot.gemini { background: #58a6ff; box-shadow: 0 0 6px rgba(88, 166, 255, 0.6); }
+
+  /* 下拉卡片 */
+  .model-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    width: 280px;
+    background: #1c2128;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    padding: 6px;
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 100;
+  }
+  .model-dropdown-menu.open {
+    display: flex;
+  }
+  .model-group-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 4px 8px;
+  }
+  .model-option-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-primary);
+    transition: background 0.12s ease;
+  }
+  .model-option-item:hover {
+    background: #2d333b;
+  }
+  .model-option-item.selected {
+    background: rgba(139, 92, 246, 0.2);
+    color: #e9d5ff;
+    font-weight: 600;
+  }
+  .model-option-desc {
+    font-size: 10.5px;
+    color: var(--text-muted);
+  }
+
+  .stage-tool-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s ease;
+  }
+  .stage-tool-btn:hover {
+    background: var(--bg-card);
+    color: var(--text-primary);
+  }
+
+  /* 消息流与对话舞台 */
+  .conversation-stream {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* ZCode 极客欢迎屏幕 */
+  .zcode-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+    max-width: 600px;
+    text-align: center;
+    padding: 30px 10px;
+  }
+  .zcode-hero-emblem {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    background: var(--accent-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px var(--accent-glow);
+    margin-bottom: 18px;
+  }
+  .zcode-hero-emblem svg {
+    width: 32px;
+    height: 32px;
+    fill: #ffffff;
+  }
+  .zcode-hero-title {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: #ffffff;
+    margin-bottom: 6px;
+  }
+  .zcode-hero-sub {
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  .starter-cards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+  }
+  .starter-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 12px 14px;
+    border-radius: 8px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .starter-card:hover {
+    border-color: rgba(139, 92, 246, 0.5);
+    background: var(--bg-card-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .starter-card-title {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .starter-card-prompt {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  /* 结构化消息条目 */
+  .turn-bubble {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 820px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  /* 用户发言卡片 */
+  .turn-user {
+    align-self: flex-end;
+  }
+  .user-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+  .user-content-card {
+    background: #1e2530;
+    border: 1px solid #303947;
+    padding: 12px 16px;
+    border-radius: 12px 12px 2px 12px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: #f0f6fc;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* Agent 智能体响应块 */
+  .turn-agent {
+    align-self: flex-start;
+  }
+  .agent-header-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #c4b5fd;
+  }
+  .agent-avatar-badge {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--accent-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px var(--accent-glow);
+  }
+  .agent-avatar-badge svg {
+    width: 12px;
+    height: 12px;
+    fill: #ffffff;
+  }
+
+  /* ZCode 标志性组件 1: 目标与执行计划清单 (Goal Plan Card) */
+  .zcode-plan-card {
+    background: var(--bg-card);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .plan-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 600;
+    color: #e9d5ff;
+  }
+  .plan-steps-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .plan-step-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .step-icon {
+    font-size: 11px;
+    font-family: var(--font-mono);
+  }
+  .step-icon.done { color: var(--color-success-light); }
+  .step-icon.running { color: var(--accent-blue); }
+  .step-icon.pending { color: var(--text-muted); }
+
+  /* ZCode 标志性组件 2: 思考链过程折叠卡片 (Thinking Disclosure) */
+  details.zcode-thinking {
+    background: #0e1219;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  details.zcode-thinking summary {
+    padding: 7px 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-card);
+    transition: background 0.15s ease;
+  }
+  details.zcode-thinking summary:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+  }
+  .thinking-body {
+    padding: 10px 14px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: #9aa4b2;
+    white-space: pre-wrap;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  /* ZCode 标志性组件 3: 终端执行卡片与文件修改卡片 (Tool Action Cards) */
+  .tool-call-card {
+    background: var(--bg-terminal);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .tool-call-header {
+    background: #141923;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 11.5px;
+  }
+  .tool-call-type {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #93c5fd;
+  }
+  .tool-call-badge {
+    background: rgba(35, 134, 54, 0.2);
+    border: 1px solid rgba(63, 185, 80, 0.4);
+    color: #7ee787;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+  .tool-call-body {
+    padding: 8px 12px;
+    color: #c9d1d9;
+    line-height: 1.5;
+    overflow-x: auto;
+  }
+
+  /* Markdown 正文样式 */
+  .agent-markdown-body {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--text-primary);
+  }
+  .agent-markdown-body p { margin-bottom: 10px; }
+  .agent-markdown-body pre {
+    background: #0d1117;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    overflow-x: auto;
+    margin: 10px 0;
+    position: relative;
+  }
+  .agent-markdown-body code {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+  }
+  .agent-markdown-body pre code {
+    background: transparent;
+    padding: 0;
+  }
+  .agent-markdown-body :not(pre) > code {
+    background: rgba(110, 118, 129, 0.2);
+    padding: 2px 5px;
+    border-radius: 4px;
+  }
+  .agent-markdown-body ul, .agent-markdown-body ol {
+    margin-left: 20px;
+    margin-bottom: 10px;
+  }
+
+  /* 代码块顶部标题栏 */
+  .code-block-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #161b22;
+    padding: 4px 10px;
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+  }
+  .code-copy-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 2px 7px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 10.5px;
+    transition: all 0.15s ease;
+  }
+  .code-copy-btn:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+  }
+
+  /* 底部悬浮输入舱 (Agent Cockpit Composer) */
+  .stage-composer-wrapper {
+    padding: 0 24px 18px;
+    background: linear-gradient(180deg, rgba(11, 14, 20, 0) 0%, rgba(11, 14, 20, 0.95) 30%, rgba(11, 14, 20, 1) 100%);
+    flex: none;
+    z-index: 25;
+  }
+  .composer-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    display: flex;
+    flex-direction: column;
+    max-width: 820px;
+    margin: 0 auto;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .composer-card:focus-within {
+    border-color: rgba(139, 92, 246, 0.6);
+    box-shadow: 0 12px 34px rgba(139, 92, 246, 0.18);
+  }
+
+  .composer-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 11.5px;
+  }
+  .composer-mode-pills {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .mode-pill-mini {
+    background: var(--bg-input);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .mode-pill-mini:hover {
+    color: var(--text-primary);
+    border-color: var(--border-color);
+  }
+  .mode-pill-mini.active {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: rgba(139, 92, 246, 0.5);
+    color: #e9d5ff;
+    font-weight: 600;
+  }
+
+  .composer-textarea {
+    width: 100%;
+    min-height: 72px;
+    max-height: 220px;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 10px 14px;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    line-height: 1.5;
+    resize: none;
+  }
+  .composer-textarea::placeholder {
+    color: var(--text-muted);
+  }
+
+  .composer-bottom-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px 8px;
+  }
+  .composer-tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .composer-tool-tag {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--bg-input);
+    border: 1px solid var(--border-subtle);
+    padding: 2px 7px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .composer-tool-tag:hover {
+    color: var(--text-secondary);
+    border-color: var(--border-color);
+  }
+  .token-counter-pill {
+    font-size: 10.5px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+  }
+
+  .composer-action-btn {
+    background: var(--accent-gradient);
+    color: #ffffff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 7px;
+    font-weight: 600;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px var(--accent-glow);
+    transition: all 0.15s ease;
+  }
+  .composer-action-btn:hover {
+    filter: brightness(1.1);
+  }
+  .composer-action-btn.abort {
+    background: var(--color-error);
+    box-shadow: 0 2px 8px rgba(248, 81, 73, 0.4);
+    animation: pulse-abort 1.2s infinite;
+  }
+  @keyframes pulse-abort {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  /* 4. 右侧栏：ZCode 桌面端标志性工作台 (Files / Terminal / Changes / Preview) */
+  .workbench-pane {
+    width: var(--workbench-width);
+    flex: none;
+    background: var(--bg-sidebar);
+    border-left: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1), margin-right 0.2s ease;
+    z-index: 30;
+  }
+  .workbench-pane.collapsed {
+    margin-right: calc(-1 * var(--workbench-width));
+  }
+
+  .workbench-tabs-bar {
+    height: 38px;
+    background: var(--bg-titlebar);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px;
+  }
+  .workbench-tabs {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .workbench-tab {
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.12s ease;
+  }
+  .workbench-tab:hover {
+    background: var(--bg-card);
+    color: var(--text-primary);
+  }
+  .workbench-tab.active {
+    background: var(--bg-card);
+    color: #ffffff;
+    font-weight: 600;
+    border-bottom: 2px solid var(--accent-purple);
+  }
+  .workbench-tab-badge {
+    font-size: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1px 5px;
+    border-radius: 10px;
+  }
+
+  .workbench-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--bg-window);
+  }
+
+  /* 标签页 1: 文件浏览器 (Files) */
+  .pane-files {
+    display: none;
+    flex: 1;
+    overflow: hidden;
+    flex-direction: column;
+  }
+  .pane-files.active {
+    display: flex;
+  }
+  .file-tree-bar {
+    padding: 8px 12px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .file-tree-list {
+    max-height: 180px;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--border-color);
+    padding: 4px;
+    flex: none;
+  }
+  .file-tree-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.12s ease;
+  }
+  .file-tree-item:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+  }
+  .file-tree-item.active {
+    background: rgba(139, 92, 246, 0.15);
+    color: #c4b5fd;
+    font-weight: 600;
+  }
+  .file-viewer-header {
+    padding: 6px 12px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+  }
+  .file-code-viewport {
+    flex: 1;
+    overflow: auto;
+    padding: 12px;
+    background: var(--bg-terminal);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.5;
+    color: #e6edf3;
+    white-space: pre;
+  }
+
+  /* 标签页 2: 集成终端 (Terminal) */
+  .pane-terminal {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    background: var(--bg-terminal);
+  }
+  .pane-terminal.active {
+    display: flex;
+  }
+  .terminal-top-bar {
+    padding: 6px 12px;
+    background: #0d1117;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+  .terminal-viewport {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.5;
+    color: #7ee787;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .terminal-input-row {
+    padding: 8px 12px;
+    background: #0d1117;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+  }
+  .terminal-prompt {
+    color: var(--accent-blue);
+    font-weight: 700;
+  }
+  .terminal-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #f0f6fc;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  /* 标签页 3: Git 变更与 Diff (Changes) */
+  .pane-changes {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+  }
+  .pane-changes.active {
+    display: flex;
+  }
+  .changes-header {
+    padding: 8px 12px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11.5px;
+  }
+  .diff-viewport {
+    flex: 1;
+    overflow: auto;
+    padding: 12px;
+    background: var(--bg-terminal);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    line-height: 1.5;
+    white-space: pre;
+  }
+  .diff-line-add { color: #7ee787; background: rgba(35, 134, 54, 0.15); display: block; }
+  .diff-line-del { color: #f85149; background: rgba(248, 81, 73, 0.15); display: block; }
+  .diff-line-hdr { color: #58a6ff; font-weight: 700; display: block; }
+
+  /* 标签页 4: 实时网页预览 (Preview) */
+  .pane-preview {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+  }
+  .pane-preview.active {
+    display: flex;
+  }
+  .preview-address-bar {
+    padding: 6px 10px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .preview-url-input {
+    flex: 1;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+  }
+  .preview-frame {
+    flex: 1;
+    border: none;
+    background: #ffffff;
+  }
+
+  /* ---------------- 认证弹窗 ---------------- */
+  .auth-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(9, 12, 16, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .auth-card {
+    width: 360px;
+    background: #161b22;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .auth-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--accent-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 14px var(--accent-glow);
+  }
+  .auth-logo svg {
+    width: 24px;
+    height: 24px;
+    fill: #ffffff;
+  }
+  .auth-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .auth-sub {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 18px;
+  }
+  .auth-input-group {
+    width: 100%;
+    margin-bottom: 14px;
+  }
+  .auth-input {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    padding: 9px 12px;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 13px;
+    outline: none;
+  }
+  .auth-input:focus {
+    border-color: var(--accent-purple);
+  }
+  .auth-btn {
+    width: 100%;
+    background: var(--accent-gradient);
+    color: #ffffff;
+    border: none;
+    padding: 9px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .auth-error-msg {
+    margin-top: 10px;
+    font-size: 11.5px;
+    color: var(--color-error);
+    display: none;
+  }
+
+  /* 滚动条 */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #30363d;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #484f58;
+  }
 </style>
 </head>
-<body data-agent="claude">
-  <header>
-    <div class="brand"><span class="c">Claude</span><span class="x">×</span><span class="a">agy</span></div>
-    <div class="spacer"></div>
-    <div class="switch" id="switch">
-      <button data-a="claude" class="on">Claude</button>
-      <button data-a="agy">agy</button>
+
+<body>
+<div class="desktop-app-shell">
+
+  <!-- 1. macOS 桌面端标题栏 -->
+  <header class="titlebar">
+    <div class="titlebar-left">
+      <div class="traffic-lights">
+        <span class="traffic-dot close" title="Close"></span>
+        <span class="traffic-dot min" title="Minimize"></span>
+        <span class="traffic-dot max" title="Maximize"></span>
+      </div>
+      <div class="titlebar-brand">
+        <div class="brand-logo-icon">
+          <!-- ZCode 经典几何徽标 -->
+          <svg viewBox="0 0 24 24"><path d="M4 5h16l-9 14h-7l9-14z"/></svg>
+        </div>
+        <span class="brand-name">ZCode</span>
+        <span class="brand-tag">ADE v3.14</span>
+      </div>
+      <div class="workspace-pill">
+        <span>📁 agy-chat</span>
+        <span class="git-branch">git:(main)</span>
+      </div>
     </div>
-    <select id="model" disabled title="agy 模型"></select>
+
+    <div class="titlebar-center">
+      <div class="global-search-bar" id="globalSearchBar">
+        <span>🔍 Search tasks, files, commands...</span>
+        <span class="kbd-shortcut">⌘K</span>
+      </div>
+    </div>
+
+    <div class="titlebar-right">
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        <span>Local 8765</span>
+      </div>
+      <button class="window-tool-btn active" id="btnToggleSidebar" title="Toggle Sidebar (⌘B)">◧</button>
+      <button class="window-tool-btn active" id="btnToggleWorkbench" title="Toggle Workbench (⌘J)">◨</button>
+      <button class="window-tool-btn" id="btnLogout" title="Lock ADE">🔒</button>
+    </div>
   </header>
 
-  <main id="main">
-    <div class="thread" id="thread"></div>
-  </main>
+  <!-- 主三栏布局 -->
+  <div class="workspace-layout">
 
-  <footer>
-    <div class="composer">
-      <textarea id="input" placeholder="给 Claude 发消息…  (Enter 发送，Shift+Enter 换行)" rows="1"></textarea>
-      <button class="send" id="send">发送</button>
+    <!-- 2. 左侧栏：任务与会话 -->
+    <aside class="sidebar-pane" id="sidebarPane">
+      <div class="sidebar-header">
+        <button class="btn-new-task" id="btnNewTask">
+          <span>+ New Goal / Task</span>
+          <span class="kbd-shortcut" style="background:rgba(255,255,255,0.2); border:none; color:#fff;">⌘N</span>
+        </button>
+      </div>
+
+      <div class="sidebar-section-title">
+        <span>Tasks & Sessions</span>
+        <span id="taskCountBadge" style="font-family:var(--font-mono); font-size:10px;">3</span>
+      </div>
+
+      <div class="task-list" id="taskListContainer">
+        <!-- 动态任务列表 -->
+      </div>
+
+      <!-- 模式选择器 -->
+      <div class="mode-selector-card">
+        <div class="mode-title">
+          <span>Execution Mode</span>
+          <span style="color:var(--accent-purple);">Active</span>
+        </div>
+        <div class="mode-pills-row">
+          <div class="mode-pill-btn active" data-mode="autonomous">⚡ Auto (YOLO)</div>
+          <div class="mode-pill-btn" data-mode="supervised">🛡️ Supervised</div>
+        </div>
+      </div>
+
+      <!-- 底栏用户信息 -->
+      <div class="sidebar-footer">
+        <div class="user-badge">
+          <div class="user-avatar">A</div>
+          <div class="user-info">
+            <span class="user-name">ankangxu</span>
+            <span class="user-status">ADE Local Host</span>
+          </div>
+        </div>
+        <span style="font-size:10.5px; color:var(--text-muted); font-family:var(--font-mono);">Docker: OK</span>
+      </div>
+    </aside>
+
+    <!-- 3. 中间舞台：Agent 任务对话与执行流 -->
+    <main class="main-stage">
+      <div class="stage-header">
+        <div class="stage-breadcrumbs">
+          <span style="color:var(--text-muted);">Tasks /</span>
+          <span class="current-task-name" id="currentTaskTitle">#1 双子对话台搭建</span>
+          <span class="goal-pill">🎯 Goal Mode</span>
+        </div>
+
+        <div class="stage-actions">
+          <!-- 模型选择胶囊 -->
+          <div class="model-select-capsule" id="modelSelectCapsule">
+            <span class="model-logo-dot claude" id="activeModelDot"></span>
+            <span id="activeModelLabel">Claude Opus 4-8</span>
+            <span style="font-size:10px; color:var(--text-muted);">▾</span>
+
+            <div class="model-dropdown-menu" id="modelDropdownMenu">
+              <div class="model-group-label">Anthropic 旗舰梯队</div>
+              <div class="model-option-item selected" data-agent="claude" data-model="global.anthropic.claude-opus-4-8">
+                <div>
+                  <div>Claude Opus 4-8</div>
+                  <div class="model-option-desc">顶尖推理与架构设计</div>
+                </div>
+                <span>✓</span>
+              </div>
+              <div class="model-option-item" data-agent="claude" data-model="global.anthropic.claude-opus-4-7">
+                <div>
+                  <div>Claude Opus 4-7</div>
+                  <div class="model-option-desc">长程任务高稳定性</div>
+                </div>
+              </div>
+
+              <div class="model-group-label">Google agy 梯队</div>
+              <div class="model-option-item" data-agent="agy" data-model="gemini-3.8-flash-high">
+                <div>
+                  <div>Gemini 3.8 Flash High</div>
+                  <div class="model-option-desc">超高速流式返回</div>
+                </div>
+              </div>
+              <div class="model-option-item" data-agent="agy" data-model="gemini-3.1-pro-high">
+                <div>
+                  <div>Gemini 3.1 Pro High</div>
+                  <div class="model-option-desc">深度逻辑与多模态分析</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button class="stage-tool-btn" id="btnClearHistory" title="Clear Task History">
+            <span>🗑️</span>
+            <span>Clear</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 消息流区域 -->
+      <div class="conversation-stream" id="conversationStream">
+        <!-- 默认展示 ZCode 极客欢迎屏幕 -->
+        <div class="zcode-hero" id="zcodeHero">
+          <div class="zcode-hero-emblem">
+            <svg viewBox="0 0 24 24"><path d="M4 5h16l-9 14h-7l9-14z"/></svg>
+          </div>
+          <h1 class="zcode-hero-title">ZCode ADE</h1>
+          <p class="zcode-hero-sub">
+            Agentic Development Environment · AI-First 自主软件工程工作台<br>
+            原生集成代码文件树、嵌入式终端、Git 实时 Diff 与本地网页实时预览。
+          </p>
+
+          <div class="starter-cards-grid">
+            <div class="starter-card" data-prompt="为项目编写一个支持流式输出和安全认证的自动化测试脚本">
+              <div class="starter-card-title">🚀 编写流式测试</div>
+              <div class="starter-card-prompt">生成 Python 测试客户端验证 /api/chat 实时 chunk 响应</div>
+            </div>
+            <div class="starter-card" data-prompt="分析 server.py 的多线程架构与防时序攻击保护机制">
+              <div class="starter-card-title">🔍 安全与性能审计</div>
+              <div class="starter-card-prompt">审查 HMAC-SHA256 Token 鉴权与防暴力破解速率限制</div>
+            </div>
+            <div class="starter-card" data-prompt="给 ZCode 桌面端界面添加快捷键支持与命令面板">
+              <div class="starter-card-title">✨ 交互功能增强</div>
+              <div class="starter-card-prompt">扩展 ⌘K 命令面板并支持一键切换文件与工作区面板</div>
+            </div>
+            <div class="starter-card" data-prompt="检查当前 docker-compose.yml 配置并给出生产环境部署优化建议">
+              <div class="starter-card-title">🐳 容器化部署优化</div>
+              <div class="starter-card-prompt">评估安全挂载、资源限制与本地反代最佳实践</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="messagesList" style="display:flex; flex-direction:column; gap:16px;"></div>
+      </div>
+
+      <!-- 底部悬浮输入舱 -->
+      <div class="stage-composer-wrapper">
+        <div class="composer-card">
+          <div class="composer-top-bar">
+            <div class="composer-mode-pills">
+              <span class="mode-pill-mini active" id="composerModeBadge">⚡ Autonomous (YOLO)</span>
+              <span class="mode-pill-mini" id="btnToggleThinking">🧠 Thought: High</span>
+            </div>
+            <span class="token-counter-pill" id="tokenMeter">Context: 2.4k / 200k</span>
+          </div>
+
+          <textarea 
+            class="composer-textarea" 
+            id="composerTextarea" 
+            placeholder="给 ZCode 设定一个目标（输入 /goal 规划任务，@ 引用文件，Enter 发送，Shift+Enter 换行）..."
+            rows="2"
+          ></textarea>
+
+          <div class="composer-bottom-bar">
+            <div class="composer-tools">
+              <span class="composer-tool-tag" id="btnAttachFile">+ File (@)</span>
+              <span class="composer-tool-tag" id="btnInsertGoal">🎯 /goal</span>
+              <span class="composer-tool-tag" id="btnSwitchToDiff">🔄 Diff</span>
+            </div>
+            <button class="composer-action-btn" id="btnSend">
+              <span id="btnSendIcon">Run</span>
+              <span style="font-size:10px;">↵</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 4. 右侧栏：ZCode 标志性工作台 (Files / Terminal / Changes / Preview) -->
+    <aside class="workbench-pane" id="workbenchPane">
+      <div class="workbench-tabs-bar">
+        <div class="workbench-tabs">
+          <div class="workbench-tab active" data-tab="files">
+            <span>📁 Files</span>
+          </div>
+          <div class="workbench-tab" data-tab="terminal">
+            <span>💻 Terminal</span>
+          </div>
+          <div class="workbench-tab" data-tab="changes">
+            <span>🔄 Changes</span>
+            <span class="workbench-tab-badge" id="changesBadge">2</span>
+          </div>
+          <div class="workbench-tab" data-tab="preview">
+            <span>🌐 Preview</span>
+          </div>
+        </div>
+        <button class="window-tool-btn" id="btnCloseWorkbench" title="Collapse Workbench">✕</button>
+      </div>
+
+      <div class="workbench-content">
+        <!-- 标签页 1: Files -->
+        <div class="pane-files active" id="paneFiles">
+          <div class="file-tree-bar">
+            <span>Project Explorer (agy-chat)</span>
+            <span id="fileCountBadge">6 files</span>
+          </div>
+          <div class="file-tree-list" id="fileTreeList">
+            <!-- 动态文件列表 -->
+          </div>
+          <div class="file-viewer-header">
+            <span id="currentViewingFile">server.py</span>
+            <button class="code-copy-btn" id="btnCopyFileContent">Copy</button>
+          </div>
+          <div class="file-code-viewport" id="fileCodeViewport">
+# 选择上方文件以查看代码...
+          </div>
+        </div>
+
+        <!-- 标签页 2: Terminal -->
+        <div class="pane-terminal" id="paneTerminal">
+          <div class="terminal-top-bar">
+            <span>bash · agy-chat:8765</span>
+            <button class="code-copy-btn" id="btnClearTerminal">Clear</button>
+          </div>
+          <div class="terminal-viewport" id="terminalViewport">
+[ZCode ADE System Log]
+● Starting local runtime on 127.0.0.1:8765
+● Anthropic SDK & agy CLI connectors initialized.
+● Security session manager active.
+● Ready for autonomous agent goals.
+ankangxu@local:~/agy-chat$ 
+          </div>
+          <div class="terminal-input-row">
+            <span class="terminal-prompt">$</span>
+            <input type="text" class="terminal-input" id="terminalInput" placeholder="Run command in workspace...">
+          </div>
+        </div>
+
+        <!-- 标签页 3: Changes (Git Diff) -->
+        <div class="pane-changes" id="paneChanges">
+          <div class="changes-header">
+            <span style="font-weight:600;">Git Working Tree Diffs</span>
+            <button class="code-copy-btn" id="btnRefreshGit">Refresh</button>
+          </div>
+          <div class="diff-viewport" id="diffViewport">
+Loading git diff status...
+          </div>
+        </div>
+
+        <!-- 标签页 4: Preview -->
+        <div class="pane-preview" id="panePreview">
+          <div class="preview-address-bar">
+            <button class="window-tool-btn" id="btnReloadPreview" title="Reload Preview">⟳</button>
+            <input type="text" class="preview-url-input" value="http://127.0.0.1:8765/" readonly>
+            <a href="http://127.0.0.1:8765/" target="_blank" class="window-tool-btn" title="Open External">↗</a>
+          </div>
+          <iframe class="preview-frame" id="previewIframe" src="about:blank"></iframe>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<!-- 认证锁定模态框 -->
+<div class="auth-overlay" id="authOverlay" style="display:none;">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <svg viewBox="0 0 24 24"><path d="M4 5h16l-9 14h-7l9-14z"/></svg>
     </div>
-    <div class="hint" id="hint">Claude · anthropic SDK · opus-4-8</div>
-  </footer>
+    <h2 class="auth-title">ZCode ADE Access</h2>
+    <p class="auth-sub">Agentic Development Environment 已启用安全鉴权</p>
+
+    <div class="auth-input-group">
+      <input type="password" class="auth-input" id="authPasswordInput" placeholder="输入访问密码 (AUTH_PASSWORD)" autofocus>
+    </div>
+    <button class="auth-btn" id="btnAuthSubmit">进入工作台</button>
+    <div class="auth-error-msg" id="authErrorMsg">密码错误</div>
+  </div>
+</div>
 
 <script>
-const S = {
-  agent: "claude",
-  model: null,
-  agyModels: ["gemini-3.8-flash-high"],
-  threads: { claude: [], agy: [] },
-  busy: false,
-};
-const $ = s => document.querySelector(s);
-const thread = $("#thread"), input = $("#input"), sendBtn = $("#send"),
-      modelSel = $("#model"), hint = $("#hint");
+(() => {
+  // ---------------- 全局状态 ----------------
+  const state = {
+    authenticated: false,
+    activeAgent: "claude",
+    activeModel: "global.anthropic.claude-opus-4-8",
+    activeMode: "autonomous",
+    isStreaming: false,
+    abortController: null,
+    tasks: [
+      { id: "task-1", title: "搭建双子对话台", status: "done", time: "1h ago", history: [] },
+      { id: "task-2", title: "安全认证与 Docker 隔离", status: "done", time: "30m ago", history: [] },
+      { id: "task-3", title: "ZCode 桌面端界面复刻", status: "running", time: "Just now", history: [] }
+    ],
+    currentTaskId: "task-3",
+    files: [],
+    selectedFile: "server.py"
+  };
 
-// 载入 agy 模型列表
-fetch("/config").then(r=>r.json()).then(c=>{
-  S.agyModels = c.agyModels || S.agyModels;
-  S.model = c.defaultAgyModel || S.agyModels[0];
-  modelSel.innerHTML = S.agyModels.map(m=>`<option value="${m}">${m}</option>`).join("");
-  modelSel.value = S.model;
-}).catch(()=>{});
+  // ---------------- DOM 元素引用 ----------------
+  const el = {
+    authOverlay: document.getElementById("authOverlay"),
+    authPasswordInput: document.getElementById("authPasswordInput"),
+    btnAuthSubmit: document.getElementById("btnAuthSubmit"),
+    authErrorMsg: document.getElementById("authErrorMsg"),
+    btnLogout: document.getElementById("btnLogout"),
 
-// agent 切换
-$("#switch").addEventListener("click", e=>{
-  const b = e.target.closest("button"); if(!b || S.busy) return;
-  S.agent = b.dataset.a;
-  document.body.dataset.agent = S.agent;
-  [...$("#switch").children].forEach(x=>x.classList.toggle("on", x.dataset.a===S.agent));
-  modelSel.disabled = S.agent!=="agy";
-  input.placeholder = S.agent==="agy" ? "给 agy 发消息…  (Enter 发送)" : "给 Claude 发消息…  (Enter 发送)";
-  updateHint();
-  render();
-});
-modelSel.addEventListener("change", ()=>{ S.model = modelSel.value; updateHint(); });
+    btnToggleSidebar: document.getElementById("btnToggleSidebar"),
+    sidebarPane: document.getElementById("sidebarPane"),
+    btnToggleWorkbench: document.getElementById("btnToggleWorkbench"),
+    workbenchPane: document.getElementById("workbenchPane"),
+    btnCloseWorkbench: document.getElementById("btnCloseWorkbench"),
 
-function updateHint(){
-  hint.textContent = S.agent==="agy"
-    ? `agy · CLI (OAuth) · ${S.model}`
-    : "Claude · anthropic SDK · opus-4-8";
-}
+    btnNewTask: document.getElementById("btnNewTask"),
+    taskListContainer: document.getElementById("taskListContainer"),
+    taskCountBadge: document.getElementById("taskCountBadge"),
+    currentTaskTitle: document.getElementById("currentTaskTitle"),
 
-// 自适应高度
-input.addEventListener("input", ()=>{ input.style.height="auto"; input.style.height=Math.min(input.scrollHeight,180)+"px"; });
-input.addEventListener("keydown", e=>{
-  if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); }
-});
-sendBtn.addEventListener("click", send);
+    modelSelectCapsule: document.getElementById("modelSelectCapsule"),
+    modelDropdownMenu: document.getElementById("modelDropdownMenu"),
+    activeModelDot: document.getElementById("activeModelDot"),
+    activeModelLabel: document.getElementById("activeModelLabel"),
 
-function esc(){}
-function render(){
-  const list = S.threads[S.agent];
-  if(list.length===0){
-    thread.innerHTML = `<div class="empty"><div class="big">${S.agent==="agy"?"agy · Gemini":"Claude · Opus"}</div>开始对话吧</div>`;
-    return;
-  }
-  thread.innerHTML = "";
-  for(const m of list){
-    thread.appendChild(bubble(m.role, m.content));
-  }
-  scrollDown();
-}
-function bubble(role, text){
-  const wrap = document.createElement("div");
-  wrap.className = "msg " + (role==="user" ? "me" : "bot");
-  const av = document.createElement("div");
-  av.className = "av";
-  av.textContent = role==="user" ? "你" : (S.agent==="agy" ? "G" : "C");
-  const b = document.createElement("div");
-  b.className = "bubble";
-  b.textContent = text;
-  wrap.append(av, b);
-  return wrap;
-}
-function scrollDown(){ $("#main").scrollTop = $("#main").scrollHeight; }
+    conversationStream: document.getElementById("conversationStream"),
+    zcodeHero: document.getElementById("zcodeHero"),
+    messagesList: document.getElementById("messagesList"),
+    btnClearHistory: document.getElementById("btnClearHistory"),
 
-async function send(){
-  const text = input.value.trim();
-  if(!text || S.busy) return;
-  S.busy = true; sendBtn.disabled = true;
-  const agent = S.agent, model = S.model;
-  const history = S.threads[agent].slice();   // 之前的完整轮次
+    composerTextarea: document.getElementById("composerTextarea"),
+    btnSend: document.getElementById("btnSend"),
+    btnSendIcon: document.getElementById("btnSendIcon"),
+    tokenMeter: document.getElementById("tokenMeter"),
+    btnInsertGoal: document.getElementById("btnInsertGoal"),
+    btnAttachFile: document.getElementById("btnAttachFile"),
+    btnSwitchToDiff: document.getElementById("btnSwitchToDiff"),
 
-  // 上屏用户消息
-  S.threads[agent].push({role:"user", content:text});
-  input.value=""; input.style.height="auto";
-  render();
+    workbenchTabs: document.querySelectorAll(".workbench-tab"),
+    paneFiles: document.getElementById("paneFiles"),
+    paneTerminal: document.getElementById("paneTerminal"),
+    paneChanges: document.getElementById("paneChanges"),
+    panePreview: document.getElementById("panePreview"),
 
-  // 助手气泡（流式填充）
-  const botWrap = bubble("assistant", "");
-  const botBubble = botWrap.querySelector(".bubble");
-  botBubble.classList.add("wait");
-  thread.appendChild(botWrap); scrollDown();
+    fileTreeList: document.getElementById("fileTreeList"),
+    currentViewingFile: document.getElementById("currentViewingFile"),
+    fileCodeViewport: document.getElementById("fileCodeViewport"),
+    btnCopyFileContent: document.getElementById("btnCopyFileContent"),
+    fileCountBadge: document.getElementById("fileCountBadge"),
 
-  let acc = "";
-  try{
-    const resp = await fetch("/api/chat", {
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({agent, model, message:text, history})
-    });
-    const reader = resp.body.getReader();
-    const dec = new TextDecoder();
-    while(true){
-      const {done, value} = await reader.read();
-      if(done) break;
-      acc += dec.decode(value, {stream:true});
-      botBubble.classList.remove("wait");
-      botBubble.textContent = acc;
-      scrollDown();
+    terminalViewport: document.getElementById("terminalViewport"),
+    terminalInput: document.getElementById("terminalInput"),
+    btnClearTerminal: document.getElementById("btnClearTerminal"),
+
+    diffViewport: document.getElementById("diffViewport"),
+    btnRefreshGit: document.getElementById("btnRefreshGit"),
+    changesBadge: document.getElementById("changesBadge"),
+
+    previewIframe: document.getElementById("previewIframe"),
+    btnReloadPreview: document.getElementById("btnReloadPreview"),
+    globalSearchBar: document.getElementById("globalSearchBar")
+  };
+
+  // ---------------- 鉴权逻辑 ----------------
+  async function checkAuth() {
+    try {
+      const res = await fetch("/api/auth-status");
+      const data = await res.json();
+      if (data.authenticated) {
+        state.authenticated = true;
+        el.authOverlay.style.display = "none";
+        initWorkspace();
+      } else {
+        showAuthModal();
+      }
+    } catch {
+      showAuthModal();
     }
-  }catch(err){
-    acc += `\n\n[连接出错] ${err}`;
-    botBubble.textContent = acc;
   }
-  botBubble.classList.remove("wait");
-  S.threads[agent].push({role:"assistant", content: acc || "(空)"});
-  S.busy = false; sendBtn.disabled = false;
-  input.focus();
-}
 
-updateHint();
-render();
+  function showAuthModal() {
+    state.authenticated = false;
+    el.authOverlay.style.display = "flex";
+    el.authPasswordInput.focus();
+  }
+
+  async function performLogin() {
+    const pwd = el.authPasswordInput.value.trim();
+    if (!pwd) return;
+    el.authErrorMsg.style.display = "none";
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: pwd })
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        el.authOverlay.style.display = "none";
+        state.authenticated = true;
+        initWorkspace();
+      } else {
+        el.authErrorMsg.textContent = data.error || "密码错误";
+        el.authErrorMsg.style.display = "block";
+      }
+    } catch (err) {
+      el.authErrorMsg.textContent = "服务连接异常: " + err.message;
+      el.authErrorMsg.style.display = "block";
+    }
+  }
+
+  async function performLogout() {
+    try {
+      await fetch("/api/logout", { method: "POST" });
+    } finally {
+      showAuthModal();
+    }
+  }
+
+  // ---------------- 工作台与文件树初始化 ----------------
+  async function initWorkspace() {
+    loadFiles();
+    loadGitStatus();
+    renderTasks();
+  }
+
+  async function loadFiles() {
+    try {
+      const res = await fetch("/api/workspace/files");
+      if (!res.ok) return;
+      const data = await res.json();
+      state.files = data.files || [];
+      el.fileCountBadge.textContent = state.files.length + " files";
+      renderFileTree();
+      if (state.files.length > 0) {
+        openFile(state.selectedFile || state.files[0].path);
+      }
+    } catch (err) {
+      console.error("Failed to load files", err);
+    }
+  }
+
+  function renderFileTree() {
+    el.fileTreeList.innerHTML = "";
+    state.files.forEach(f => {
+      const div = document.createElement("div");
+      div.className = "file-tree-item" + (f.path === state.selectedFile ? " active" : "");
+      let icon = "📄";
+      if (f.name.endsWith(".py")) icon = "🐍";
+      else if (f.name.endsWith(".html")) icon = "🌐";
+      else if (f.name.includes("Docker")) icon = "🐳";
+      else if (f.name.endsWith(".md")) icon = "📖";
+      else if (f.name.endsWith(".txt")) icon = "📋";
+
+      div.innerHTML = `<span>${icon}</span><span>${f.path}</span>`;
+      div.onclick = () => openFile(f.path);
+      el.fileTreeList.appendChild(div);
+    });
+  }
+
+  async function openFile(relPath) {
+    state.selectedFile = relPath;
+    el.currentViewingFile.textContent = relPath;
+    renderFileTree();
+    el.fileCodeViewport.textContent = "Loading " + relPath + "...";
+    try {
+      const res = await fetch("/api/workspace/file?path=" + encodeURIComponent(relPath));
+      if (res.ok) {
+        const data = await res.json();
+        el.fileCodeViewport.textContent = data.content || "(空文件)";
+      } else {
+        el.fileCodeViewport.textContent = "无法读取文件: " + res.statusText;
+      }
+    } catch (err) {
+      el.fileCodeViewport.textContent = "读取异常: " + err.message;
+    }
+  }
+
+  async function loadGitStatus() {
+    try {
+      const res = await fetch("/api/workspace/git");
+      if (!res.ok) return;
+      const data = await res.json();
+      const statusText = data.status || "";
+      const diffText = data.diff || "";
+
+      const lines = statusText.trim().split("\n").filter(Boolean);
+      el.changesBadge.textContent = lines.length;
+
+      if (!statusText && !diffText) {
+        el.diffViewport.textContent = "✓ Working tree clean. No local modifications.";
+        return;
+      }
+
+      let formattedDiff = "";
+      diffText.split("\n").forEach(line => {
+        if (line.startsWith("+") && !line.startsWith("+++")) {
+          formattedDiff += `<span class="diff-line-add">${escapeHtml(line)}</span>\n`;
+        } else if (line.startsWith("-") && !line.startsWith("---")) {
+          formattedDiff += `<span class="diff-line-del">${escapeHtml(line)}</span>\n`;
+        } else if (line.startsWith("diff ") || line.startsWith("@@")) {
+          formattedDiff += `<span class="diff-line-hdr">${escapeHtml(line)}</span>\n`;
+        } else {
+          formattedDiff += escapeHtml(line) + "\n";
+        }
+      });
+      el.diffViewport.innerHTML = formattedDiff || escapeHtml(statusText);
+    } catch (err) {
+      el.diffViewport.textContent = "Git 状态获取失败: " + err.message;
+    }
+  }
+
+  // ---------------- 任务管理 ----------------
+  function renderTasks() {
+    el.taskListContainer.innerHTML = "";
+    el.taskCountBadge.textContent = state.tasks.length;
+
+    state.tasks.forEach(task => {
+      const item = document.createElement("div");
+      item.className = "task-item" + (task.id === state.currentTaskId ? " active" : "");
+      item.innerHTML = `
+        <div class="task-item-main">
+          <div class="task-title-line">
+            <span class="task-status-indicator ${task.status}"></span>
+            <span class="task-item-title">${escapeHtml(task.title)}</span>
+          </div>
+          <div class="task-item-meta">
+            <span class="task-tag">${task.status.toUpperCase()}</span>
+            <span>${task.time}</span>
+          </div>
+        </div>
+        <button class="task-delete-btn" title="Delete Task">✕</button>
+      `;
+
+      item.onclick = (e) => {
+        if (e.target.classList.contains("task-delete-btn")) {
+          deleteTask(task.id);
+          return;
+        }
+        switchTask(task.id);
+      };
+      el.taskListContainer.appendChild(item);
+    });
+
+    const curr = state.tasks.find(t => t.id === state.currentTaskId);
+    if (curr) {
+      el.currentTaskTitle.textContent = curr.title;
+      renderCurrentMessages(curr);
+    }
+  }
+
+  function switchTask(taskId) {
+    state.currentTaskId = taskId;
+    renderTasks();
+  }
+
+  function deleteTask(taskId) {
+    if (state.tasks.length <= 1) return;
+    state.tasks = state.tasks.filter(t => t.id !== taskId);
+    if (state.currentTaskId === taskId) {
+      state.currentTaskId = state.tasks[0].id;
+    }
+    renderTasks();
+  }
+
+  function createNewTask() {
+    const newId = "task-" + (Date.now());
+    const count = state.tasks.length + 1;
+    const newTask = {
+      id: newId,
+      title: `Task #${count}: 新建自主目标`,
+      status: "running",
+      time: "Just now",
+      history: []
+    };
+    state.tasks.unshift(newTask);
+    state.currentTaskId = newId;
+    renderTasks();
+    el.composerTextarea.focus();
+  }
+
+  function renderCurrentMessages(task) {
+    el.messagesList.innerHTML = "";
+    if (!task.history || task.history.length === 0) {
+      el.zcodeHero.style.display = "flex";
+      return;
+    }
+    el.zcodeHero.style.display = "none";
+
+    task.history.forEach(msg => {
+      if (msg.role === "user") {
+        appendUserMessageToDOM(msg.content, false);
+      } else {
+        appendAgentResponseToDOM(msg.content, false);
+      }
+    });
+    scrollBottom();
+  }
+
+  // ---------------- 对话流渲染 ----------------
+  function appendUserMessageToDOM(text, shouldScroll = true) {
+    el.zcodeHero.style.display = "none";
+    const bubble = document.createElement("div");
+    bubble.className = "turn-bubble turn-user";
+    bubble.innerHTML = `
+      <div class="user-header-bar">
+        <span>👤 ankangxu (User)</span>
+        <span>Just now</span>
+      </div>
+      <div class="user-content-card">${escapeHtml(text)}</div>
+    `;
+    el.messagesList.appendChild(bubble);
+    if (shouldScroll) scrollBottom();
+  }
+
+  function appendAgentResponseToDOM(text, shouldScroll = true) {
+    const bubble = document.createElement("div");
+    bubble.className = "turn-bubble turn-agent";
+
+    // 结构化渲染：如果检测到是初始任务，附加 ZCode Plan Card 和 Thinking Disclosure
+    const hasCode = text.includes("```");
+    const planHtml = `
+      <div class="zcode-plan-card">
+        <div class="plan-card-header">
+          <span>🎯 Goal: ${escapeHtml(state.tasks.find(t=>t.id===state.currentTaskId)?.title || "执行任务")}</span>
+          <span style="color:#7ee787; font-size:11px;">Running</span>
+        </div>
+        <div class="plan-steps-list">
+          <div class="plan-step-item"><span class="step-icon done">✓</span><span>分析工作区上下文与依赖关系</span></div>
+          <div class="plan-step-item"><span class="step-icon done">✓</span><span>初始化 ADE 双端通信流</span></div>
+          <div class="plan-step-item"><span class="step-icon running">⏳</span><span>执行代码修改与热重载</span></div>
+        </div>
+      </div>
+    `;
+
+    const thinkingHtml = `
+      <details class="zcode-thinking">
+        <summary>🧠 Thought Process (2.4s) · 1,240 reasoning tokens</summary>
+        <div class="thinking-body">Deconstructing user intent within ADE context...
+Validating multi-model orchestrator and terminal session...
+Synthesizing response with live syntax-highlighted artifacts.</div>
+      </details>
+    `;
+
+    bubble.innerHTML = `
+      <div class="agent-header-bar">
+        <div class="agent-avatar-badge">
+          <svg viewBox="0 0 24 24"><path d="M4 5h16l-9 14h-7l9-14z"/></svg>
+        </div>
+        <span>ZCode Agent · ${state.activeModel.split(".").pop()}</span>
+      </div>
+      ${planHtml}
+      ${thinkingHtml}
+      <div class="agent-markdown-body">${marked.parse(text)}</div>
+    `;
+
+    // 格式化代码块，加入复制与运行按键
+    bubble.querySelectorAll("pre code").forEach((block) => {
+      hljs.highlightElement(block);
+      const pre = block.parentElement;
+      const header = document.createElement("div");
+      header.className = "code-block-header";
+      header.innerHTML = `
+        <span>CODE ARTIFACT</span>
+        <button class="code-copy-btn">Copy</button>
+      `;
+      header.querySelector(".code-copy-btn").onclick = () => {
+        navigator.clipboard.writeText(block.innerText);
+        header.querySelector(".code-copy-btn").textContent = "Copied!";
+        setTimeout(() => header.querySelector(".code-copy-btn").textContent = "Copy", 1500);
+      };
+      pre.insertBefore(header, block);
+    });
+
+    el.messagesList.appendChild(bubble);
+    if (shouldScroll) scrollBottom();
+  }
+
+  function scrollBottom() {
+    el.conversationStream.scrollTop = el.conversationStream.scrollHeight;
+  }
+
+  // ---------------- 流式对话发送 ----------------
+  async function sendMessage() {
+    if (state.isStreaming) {
+      abortStreaming();
+      return;
+    }
+
+    const message = el.composerTextarea.value.trim();
+    if (!message) return;
+
+    const task = state.tasks.find(t => t.id === state.currentTaskId);
+    if (!task) return;
+
+    // 若当前任务是默认标题，则以用户第一句话作为任务标题
+    if (task.title.startsWith("Task #")) {
+      task.title = message.slice(0, 20) + (message.length > 20 ? "..." : "");
+      renderTasks();
+    }
+
+    appendUserMessageToDOM(message);
+    task.history.push({ role: "user", content: message });
+    el.composerTextarea.value = "";
+    el.composerTextarea.style.height = "auto";
+
+    // 开启流式接收占位
+    state.isStreaming = true;
+    setSendingUI(true);
+
+    const agentBubble = document.createElement("div");
+    agentBubble.className = "turn-bubble turn-agent";
+    agentBubble.innerHTML = `
+      <div class="agent-header-bar">
+        <div class="agent-avatar-badge">
+          <svg viewBox="0 0 24 24"><path d="M4 5h16l-9 14h-7l9-14z"/></svg>
+        </div>
+        <span>ZCode Agent · ${state.activeModel.split(".").pop()}</span>
+      </div>
+      <div class="agent-markdown-body"><span style="color:var(--text-muted);">Thinking & streaming...</span></div>
+    `;
+    el.messagesList.appendChild(agentBubble);
+    scrollBottom();
+
+    const markdownContainer = agentBubble.querySelector(".agent-markdown-body");
+    let accumulatedText = "";
+
+    state.abortController = new AbortController();
+
+    try {
+      // 记录到终端日志
+      appendTerminalLog(`[ADE Goal Triggered] Sending prompt to ${state.activeAgent} (${state.activeModel})...`);
+
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agent: state.activeAgent,
+          model: state.activeModel,
+          message: message,
+          history: task.history.slice(0, -1)
+        }),
+        signal: state.abortController.signal
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          showAuthModal();
+          return;
+        }
+        throw new Error(`HTTP ${res.status} ${res.statusText}`);
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      markdownContainer.innerHTML = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        accumulatedText += chunk;
+        markdownContainer.innerHTML = marked.parse(accumulatedText);
+        scrollBottom();
+      }
+
+      task.history.push({ role: "assistant", content: accumulatedText });
+      appendTerminalLog(`[ADE Goal Completed] Received ${accumulatedText.length} chars.`);
+
+      // 重新高亮代码块
+      markdownContainer.querySelectorAll("pre code").forEach(block => {
+        hljs.highlightElement(block);
+      });
+
+      // 自动刷新一下 Git 状态
+      loadGitStatus();
+    } catch (err) {
+      if (err.name === "AbortError") {
+        markdownContainer.innerHTML += `<p style="color:var(--color-error); font-weight:600;">[Stream Aborted by User]</p>`;
+        appendTerminalLog("[ADE Goal Aborted]");
+      } else {
+        markdownContainer.innerHTML = `<p style="color:var(--color-error);">请求失败: ${escapeHtml(err.message)}</p>`;
+        appendTerminalLog("[ADE Error] " + err.message);
+      }
+    } finally {
+      state.isStreaming = false;
+      state.abortController = null;
+      setSendingUI(false);
+    }
+  }
+
+  function abortStreaming() {
+    if (state.abortController) {
+      state.abortController.abort();
+    }
+  }
+
+  function setSendingUI(isSending) {
+    if (isSending) {
+      el.btnSend.classList.add("abort");
+      el.btnSendIcon.textContent = "Stop";
+    } else {
+      el.btnSend.classList.remove("abort");
+      el.btnSendIcon.textContent = "Run";
+    }
+  }
+
+  function appendTerminalLog(line) {
+    el.terminalViewport.textContent += "\n" + line;
+    el.terminalViewport.scrollTop = el.terminalViewport.scrollHeight;
+  }
+
+  // ---------------- 界面交互事件绑定 ----------------
+  // 1. 登录与登出
+  el.btnAuthSubmit.onclick = performLogin;
+  el.authPasswordInput.onkeydown = (e) => { if (e.key === "Enter") performLogin(); };
+  el.btnLogout.onclick = performLogout;
+
+  // 2. 侧边栏与工作台折叠开关
+  el.btnToggleSidebar.onclick = () => {
+    el.sidebarPane.classList.toggle("collapsed");
+    el.btnToggleSidebar.classList.toggle("active");
+  };
+  el.btnToggleWorkbench.onclick = () => {
+    el.workbenchPane.classList.toggle("collapsed");
+    el.btnToggleWorkbench.classList.toggle("active");
+  };
+  el.btnCloseWorkbench.onclick = () => {
+    el.workbenchPane.classList.add("collapsed");
+    el.btnToggleWorkbench.classList.remove("active");
+  };
+
+  // 3. 模型切换下拉
+  el.modelSelectCapsule.onclick = (e) => {
+    e.stopPropagation();
+    el.modelDropdownMenu.classList.toggle("open");
+  };
+  document.addEventListener("click", () => {
+    el.modelDropdownMenu.classList.remove("open");
+  });
+  document.querySelectorAll(".model-option-item").forEach(opt => {
+    opt.onclick = (e) => {
+      e.stopPropagation();
+      document.querySelectorAll(".model-option-item").forEach(o => o.classList.remove("selected"));
+      opt.classList.add("selected");
+      state.activeAgent = opt.getAttribute("data-agent");
+      state.activeModel = opt.getAttribute("data-model");
+      el.activeModelLabel.textContent = opt.querySelector("div > div").textContent;
+      if (state.activeAgent === "claude") {
+        el.activeModelDot.className = "model-logo-dot claude";
+      } else {
+        el.activeModelDot.className = "model-logo-dot gemini";
+      }
+      el.modelDropdownMenu.classList.remove("open");
+      appendTerminalLog(`[Model Switched] ${state.activeAgent} -> ${state.activeModel}`);
+    };
+  });
+
+  // 4. 输入框自动撑高与发送
+  el.composerTextarea.oninput = () => {
+    el.composerTextarea.style.height = "auto";
+    el.composerTextarea.style.height = Math.min(el.composerTextarea.scrollHeight, 220) + "px";
+  };
+  el.composerTextarea.onkeydown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+  el.btnSend.onclick = sendMessage;
+
+  // 5. 任务操作
+  el.btnNewTask.onclick = createNewTask;
+  el.btnClearHistory.onclick = () => {
+    const task = state.tasks.find(t => t.id === state.currentTaskId);
+    if (task) {
+      task.history = [];
+      renderCurrentMessages(task);
+      appendTerminalLog("[Task Context Cleared]");
+    }
+  };
+
+  // 6. 工作台右侧 Tab 切换
+  el.workbenchTabs.forEach(tab => {
+    tab.onclick = () => {
+      el.workbenchTabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      const tabName = tab.getAttribute("data-tab");
+
+      el.paneFiles.classList.toggle("active", tabName === "files");
+      el.paneTerminal.classList.toggle("active", tabName === "terminal");
+      el.paneChanges.classList.toggle("active", tabName === "changes");
+      el.panePreview.classList.toggle("active", tabName === "preview");
+
+      if (tabName === "changes") loadGitStatus();
+      if (tabName === "files") loadFiles();
+      if (tabName === "preview" && el.previewIframe.src === "about:blank") {
+        el.previewIframe.src = "http://127.0.0.1:8765/";
+      }
+    };
+  });
+
+  // 7. 工具按钮便捷操作
+  el.btnInsertGoal.onclick = () => {
+    el.composerTextarea.value = "/goal " + el.composerTextarea.value;
+    el.composerTextarea.focus();
+  };
+  el.btnAttachFile.onclick = () => {
+    el.composerTextarea.value += " @" + state.selectedFile + " ";
+    el.composerTextarea.focus();
+  };
+  el.btnSwitchToDiff.onclick = () => {
+    document.querySelector('[data-tab="changes"]').click();
+    if (el.workbenchPane.classList.contains("collapsed")) {
+      el.btnToggleWorkbench.click();
+    }
+  };
+
+  // 8. 终端模拟交互
+  el.terminalInput.onkeydown = (e) => {
+    if (e.key === "Enter") {
+      const cmd = el.terminalInput.value.trim();
+      el.terminalInput.value = "";
+      if (!cmd) return;
+      appendTerminalLog(`ankangxu@local:~/agy-chat$ ${cmd}`);
+      if (cmd === "clear") {
+        el.terminalViewport.textContent = "ankangxu@local:~/agy-chat$ ";
+      } else if (cmd === "git status") {
+        loadGitStatus();
+        appendTerminalLog("Working tree status refreshed in Changes tab.");
+      } else if (cmd === "ls") {
+        appendTerminalLog(state.files.map(f => f.path).join("  "));
+      } else {
+        appendTerminalLog(`bash: ${cmd}: command executed in simulated workspace sandbox.`);
+      }
+    }
+  };
+  el.btnClearTerminal.onclick = () => {
+    el.terminalViewport.textContent = "ankangxu@local:~/agy-chat$ ";
+  };
+
+  // 9. 欢迎卡片点击
+  document.querySelectorAll(".starter-card").forEach(card => {
+    card.onclick = () => {
+      const prompt = card.getAttribute("data-prompt");
+      el.composerTextarea.value = prompt;
+      el.composerTextarea.focus();
+      sendMessage();
+    };
+  });
+
+  // 10. 全局快捷键 (⌘B, ⌘J, ⌘N, ⌘K)
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "b") {
+      e.preventDefault();
+      el.btnToggleSidebar.click();
+    } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "j") {
+      e.preventDefault();
+      el.btnToggleWorkbench.click();
+    } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "n") {
+      e.preventDefault();
+      createNewTask();
+    } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      alert("ZCode ADE Command Palette:\n- ⌘N: New Goal/Task\n- ⌘B: Toggle Tasks Sidebar\n- ⌘J: Toggle Workbench Dock\n- Switch to Terminal / Files / Changes tabs on right panel");
+    }
+  });
+
+  el.globalSearchBar.onclick = () => {
+    alert("ZCode ADE Command Palette:\n- ⌘N: New Goal/Task\n- ⌘B: Toggle Tasks Sidebar\n- ⌘J: Toggle Workbench Dock\n- Switch to Terminal / Files / Changes tabs on right panel");
+  };
+
+  el.btnCopyFileContent.onclick = () => {
+    navigator.clipboard.writeText(el.fileCodeViewport.textContent);
+    el.btnCopyFileContent.textContent = "Copied!";
+    setTimeout(() => el.btnCopyFileContent.textContent = "Copy", 1500);
+  };
+  el.btnRefreshGit.onclick = loadGitStatus;
+  el.btnReloadPreview.onclick = () => {
+    el.previewIframe.src = el.previewIframe.src;
+  };
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    return str.replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;")
+              .replace(/'/g, "&#039;");
+  }
+
+  // 启动检查
+  checkAuth();
+})();
 </script>
 </body>
 </html>
